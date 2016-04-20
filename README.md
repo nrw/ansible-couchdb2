@@ -1,8 +1,9 @@
 # ansible-couchdb2
-An Ansible role to deploy CouchDB 2.0 on CentOS 6.7.
+
+An Ansible role to deploy CouchDB 2.0 on CentOS 7. (forked from [the CentOS 6.7 version](https://github.com/kafecho/ansible-couchdb2))
 
 ## Overview
-This repo contains an Ansible role to install CouchDB 2.0 on CentOS 6.7 machines. It's been tested with Ansible 1.9.4.
+This repo contains an Ansible role to install CouchDB 2.0 on CentOS 7 machines. It's been tested with Ansible 2.0.1.
 
 The role roughly follows the instructions from the CouchDB 2.0 Release Testing Plan (see https://docs.google.com/document/d/1BtndYr-0KDQTqBSLVdJoR_8C5ObYjT1RBo_Qyh5ykdQ/edit#)
 

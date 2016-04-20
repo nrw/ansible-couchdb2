@@ -6,11 +6,8 @@
 - name: enable the EPEL repo
   yum: name=epel-release
 
-- name: disable the firewall
-  service: name=iptables state=stopped enabled=no
-
 - name: download the source code for Mozilla SpiderMonkey 1.85
-  get_url: force=no url=http://ftp.mozilla.org/pub/mozilla.org/js/js185-1.0.0.tar.gz dest=/tmp
+  get_url: force=no url=http://ftp.mozilla.org/pub/mozilla.org/js/js185-1.0.0.tar.gz dest=/tmp/js185-1.0.0.tar.gz
 
 - name: unarchive the tar file
   shell: chdir=/tmp tar -xzf js185-1.0.0.tar.gz
@@ -41,10 +38,13 @@
   shell: /sbin/ldconfig
 
 - name: download Erlang 18 from Erlang Solutions
-  get_url: url=https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.2-1~centos~6_amd64.rpm dest=/opt/ force=no
+  get_url: url=https://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.3-1~centos~7_amd64.rpm
+  args:
+    dest: /opt/esl-erlang_18.3-1~centos~7_amd64.rpm
+    force: no
 
 - name: install Erlang 18
-  yum: name=/opt/esl-erlang_18.2-1~centos~6_amd64.rpm
+  yum: name=/opt/esl-erlang_18.3-1~centos~7_amd64.rpm
 
 - name: Install libicu-devel
   yum: name=libicu-devel state=installed
@@ -71,7 +71,7 @@
   yum: name=python-pip
 
 - name: ensure sphinx is installed
-  shell: pip install sphinx
+  pip: name=sphinx
 
 - name: ensure Tex is installed
   yum: name='@Tex Support'
@@ -82,35 +82,28 @@
 - name: ensure git is installed
   yum: name=git
 
-#- name: checkout the rebar sources from git
-#  git: repo=https://github.com/rebar/rebar.git dest=rebar force=yes
-
-#- name: compile rebar
-#  shell: ./bootstrap chdir=rebar
-
-#- name: copy the rebar tool to /usr/bin
-#  shell: cp rebar/rebar /usr/bin/rebar
-
 - name: checkout the CouchDB sources from the git repo
   git: repo=https://github.com/apache/couchdb dest=/tmp/couchdb force=yes version={{ git_version }}
   tags: "checkout_couchdb"
 
 - name: execute configure
-  shell: ./configure --disable-docs chdir=/tmp/couchdb
-  tags: "configure_couchdb"
-  async: 1800
+  command: ./configure --disable-docs
+  args:
+    chdir: /tmp/couchdb
 
 - name: ensure epmd is not running
-  shell: pkill epmd
+  command: pkill epmd
   ignore_errors: yes
 
 - name: execute make
-  shell: make chdir=/tmp/couchdb
-  tags: "make_couchdb"
-  async: 1800
+  command: make
+  args:
+    chdir: /tmp/couchdb
 
 - name: execute make install
-  shell: make install chdir=/tmp/couchdb
+  command: make install
+  args:
+    chdir: /tmp/couchdb
 
 - name: change the bind ports to allow external access
   copy: src=local.ini dest=/usr/local/lib/couchdb/etc/local.ini
@@ -128,8 +121,13 @@
   yum: name=python-httplib2
   tags: install_httplib2
 
+- wait_for: port=5984
+
 - name: check that we can ping CouchDB on all its ports
-  uri: url=http://127.0.0.1:{{ item }}
+  uri:
+    url: http://127.0.0.1:{{ item }}
+    method: GET
+    status_code: 200
   with_items:
   - 5986
   - 5984
